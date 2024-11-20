@@ -84,16 +84,16 @@ for observation_index in range(len(observations)):
 
 # for row in range(len(transition_matrix)):
 #     for column in range(len(transition_matrix)):
-#         if row < 4445 and column < 4445:
-#             current_state = dehash_game_state(transition_matrix[row][column])
-#             for i in range(len(current_state)):
-#                 current_state[i] += 1
-#                 hashed_state = hash_game_state(current_state)
-#                 if hashed_state < 4445:
-#                     transition_matrix[row][hashed_state] = 1
-#                     current_state[i] -= 1
-#                 else:
-#                     transition_matrix[row][hashed_state] = 0
+#          if row < 4445 and column < 4445:
+#              current_state = dehash_game_state(transition_matrix[row][column])
+#              for i in range(len(current_state)):
+#                  current_state[i] += 1
+#                  hashed_state = hash_game_state(current_state)
+#                  if hashed_state < 4445:
+#                      transition_matrix[row][hashed_state] = 1
+#                      current_state[i] -= 1
+#                  else:
+#                      transition_matrix[row][hashed_state] = 0
 
 print("Emission Matrix (Categories x States):")
 print(emission_matrix_observations_states)
@@ -135,10 +135,50 @@ for i, current_state in enumerate(states):
         else:
             transition_matrix[i, j] = 0.2 / (len(states) - 4)  # Lower probability for across-category transitions
 
-# Normalize transition matrix
+# # Normalize transition matrix
 transition_matrix /= transition_matrix.sum(axis=1, keepdims=True)
 
 # IMPLEMENT VIRTERBI ALGORITHM HERE:
+
+# Calculate the stationary distribution
+# transition_matrix_transp = transition_matrix.T
+# eigenvals, eigenvects = np.linalg.eig(transition_matrix_transp)
+# '''
+# Find the indexes of the eigenvalues that are close to one.
+# Use them to select the target eigen vectors. Flatten the result.
+# '''
+# close_to_1_idx = np.isclose(eigenvals,1)
+# target_eigenvect = eigenvects[:,close_to_1_idx]
+# target_eigenvect = target_eigenvect[:,0]
+# # Turn the eigenvector elements into probabilites
+# stationary_distrib = target_eigenvect / sum(target_eigenvect) 
+
+# '''
+# Find the indexes of the eigenvalues that are close to one.
+# Use them to select the target eigen vectors. Flatten the result.
+# '''
+# close_to_1_idx = np.isclose(eigenvals,1)
+# target_eigenvect = eigenvects[:,close_to_1_idx]
+# target_eigenvect = target_eigenvect[:,0]
+# # Turn the eigenvector elements into probabilites
+# stationary_distrib = target_eigenvect / sum(target_eigenvect) 
+
+def enforce_constraints(best_path, states):
+    category_assignments = {category: 0 for category in category_state_mapping.keys()}
+    final_path = []
+
+    for state_idx in best_path:
+        state = states[state_idx]
+        for category, state_list in category_state_mapping.items():
+            if state in state_list and category_assignments[category] < 4:
+                final_path.append(state_idx)
+                category_assignments[category] += 1
+                break
+
+    return final_path
+
+n_states = len(states)
+transition_matrix = np.full((n_states, n_states), 1.0 / n_states)
 
 # Viterbi algorithm
 def viterbi_with_constraints(observations, states, emission_matrix, transition_matrix):
@@ -150,47 +190,85 @@ def viterbi_with_constraints(observations, states, emission_matrix, transition_m
     backpointer = np.zeros((n_states, n_observations), dtype=int)
 
     # Track which states are available
-    available_states = [True] * n_states
+    # available_states = [True] * n_states
+
+    # Calculate the stationary distribution
+    transition_matrix_transp = transition_matrix.T
+    eigenvals, eigenvects = np.linalg.eig(transition_matrix_transp)
+    '''
+    Find the indexes of the eigenvalues that are close to one.
+    Use them to select the target eigen vectors. Flatten the result.
+    '''
+    close_to_1_idx = np.isclose(eigenvals,1)
+    target_eigenvect = eigenvects[:,close_to_1_idx]
+    target_eigenvect = target_eigenvect[:,0]
+    # Turn the eigenvector elements into probabilites
+    stationary_distrib = target_eigenvect / sum(target_eigenvect) 
+
+    '''
+    Find the indexes of the eigenvalues that are close to one.
+    Use them to select the target eigen vectors. Flatten the result.
+    '''
+    close_to_1_idx = np.isclose(eigenvals,1)
+    target_eigenvect = eigenvects[:,close_to_1_idx]
+    target_eigenvect = target_eigenvect[:,0]
+    # Turn the eigenvector elements into probabilites
+    stationary_distrib = target_eigenvect / sum(target_eigenvect) 
+
+    
 
     # Initialize base cases for the first observation
     for s in range(n_states):
-        dp[s, 0] = emission_matrix[0, s] if available_states[s] else 0
+        dp[s, 0] = stationary_distrib[s] * emission_matrix[0, s]
         backpointer[s, 0] = -1
 
-    # Viterbi with constraints
+
+    # # Viterbi with constraints
+    # for t in range(1, n_observations):
+    #     for s in range(n_states):
+    #         # Calculate probabilities based on allowed transitions in the matrix
+    #         best_prob = -1
+    #         best_prev_state = -1
+    #         for prev_s in range(n_states):
+    #             if transition_matrix[prev_s, s] > 0:  # Ensure transition is allowed
+    #                 prob = dp[prev_s, t - 1] * transition_matrix[prev_s, s] * emission_matrix[t, s]
+    #                 if prob > best_prob:
+    #                     best_prob = prob
+    #                     best_prev_state = prev_s
+
+    #         dp[s, t] = best_prob
+    #         backpointer[s, t] = best_prev_state
+
     for t in range(1, n_observations):
         for s in range(n_states):
-            if not available_states[s]:
-                dp[s, t] = 0  #if state is already filled, can't use it again.
-                continue
+            probabilities = [
+                dp[prev_s, t - 1] * transition_matrix[prev_s, s] * emission_matrix[t, s]
+                for prev_s in range(n_states)
+            ]
+            dp[s, t] = max(probabilities)
+            backpointer[s, t] = np.argmax(probabilities)
 
-            # Calculate probabilities based on previous states
-            best_prob = -1
-            best_prev_state = -1
-            for prev_s in range(n_states):
-                if available_states[prev_s] or t == 1:  # Ensure only unfilled states are considered
-                    prob = dp[prev_s, t-1] * transition_matrix[prev_s, s] * emission_matrix[t, s]
-                    if prob > best_prob:
-                        best_prob = prob
-                        best_prev_state = prev_s 
-
-            dp[s, t] = best_prob
-            backpointer[s, t] = best_prev_state
-
-        # Mark the best state for the current observation as filled
-        best_state = np.argmax(dp[:, t])
-        available_states[best_state] = False
-
-    # Backtrace to find the best path
     best_path = np.zeros(n_observations, dtype=int)
     best_path[-1] = np.argmax(dp[:, -1])
-    
     for t in range(n_observations - 2, -1, -1):
         best_path[t] = backpointer[best_path[t + 1], t + 1]
 
-    # Convert state indices to state names
+    # Convert indices to state names
     best_state_sequence = [states[state_idx] for state_idx in best_path]
+
+    # best_path = enforce_constraints(best_path, states)
     return best_state_sequence
+
+    # # Backtrace to find the best path
+    # best_path = np.zeros(n_observations, dtype=int)
+    # best_path[-1] = np.argmax(dp[:, -1])
+
+    # for t in range(n_observations - 2, -1, -1):
+    #     best_path[t] = backpointer[best_path[t + 1], t + 1]
+
+    # # Convert state indices to state names
+    # best_state_sequence = [states[state_idx] for state_idx in best_path]
+    # return best_state_sequence
 
 # Run the Viterbi algorithm with constraints
 best_path = viterbi_with_constraints(observations, states, emission_matrix_observations_states, transition_matrix)

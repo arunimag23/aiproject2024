@@ -39,23 +39,23 @@ def prob_in_state(observation, theta_of_similarity):
     return probability
 
 # Define observations, categories, and states
-observations = np.array(["Strawberry", "Kiwi", "Spring", "Summer", 
-                         "Tennis", "Fall", "Winter", "Soccer",
-                         "Indian", "Thai", "Basketball", "Japanese",
-                         "Volleyball", "Apple", "Chinese", "Banana"])
+observations = np.array(["strawberry", "kiwi", "spring", "summer", 
+                         "tennis", "fall", "winter", "soccer",
+                         "indian", "thai", "basketball", "japanese",
+                         "volleyball", "apple", "chinese", "banana"])
 
-categories = np.array(["Fruit", "Season", "Sport", "Cuisine"])
-states = np.array(["Fruit1", "Fruit2", "Fruit3", "Fruit4", 
-                   "Season1", "Season2", "Season3", "Season4",
-                   "Sport1", "Sport2", "Sport3", "Sport4",
-                   "Cuisine1", "Cuisine2", "Cuisine3", "Cuisine4"])
+states = np.array(["fruit", "season", "sport", "cuisine"])
+# states = np.array(["Fruit1", "Fruit2", "Fruit3", "Fruit4", 
+#                    "Season1", "Season2", "Season3", "Season4",
+#                    "Sport1", "Sport2", "Sport3", "Sport4",
+#                    "Cuisine1", "Cuisine2", "Cuisine3", "Cuisine4"])
 
 # Define category-state mapping
 category_state_mapping = {
-    "Fruits": states[:4],
-    "Seasons": states[4:8],
-    "Sports": states[8:12],
-    "Cuisines": states[12:]
+    "fruits": states[:4],
+    "seasons": states[4:8],
+    "sports": states[8:12],
+    "cuisines": states[12:]
 }
 
 def hash_game_state(game_state):
@@ -67,14 +67,28 @@ def dehash_game_state(hashed_state):
     return game_state
 
 # Create the emission matrix
-emission_matrix_observations_states = np.zeros((len(observations), len(states)))
-cleaned_states = preprocess_states(states)
+emission_matrix_observations_states = np.zeros((len(states), len(observations)))
+# cleaned_states = preprocess_states(states)
 
-for observation_index in range(len(observations)):
-    for state_index in range(len(cleaned_states)):
-        similarity = word2vec_calculation(observations[observation_index], cleaned_states[state_index])
-        probability = prob_in_state(observations[observation_index], similarity)
-        emission_matrix_observations_states[observation_index][state_index] = probability / 4  
+# for state_index in range(len(states)):
+#     for observation_index in range(len(observations)):
+#         similarity = word2vec_calculation(observations[observation_index], states[state_index])
+#         probability = prob_in_state(states[state_index], similarity)
+#         emission_matrix_observations_states[state_index][observation_index] = probability
+
+# pre-compute similarities between state for each observation
+state_similarities = []
+for state in states:
+    similarities = np.array([word2vec_calculation(obs, state) for obs in observations])
+    state_similarities.append(similarities)
+
+state_similarities = np.array(state_similarities)
+
+
+for state_index in range(len(states)):
+    similarities = state_similarities[state_index]
+    normalized_similarities = similarities / np.sum(similarities)
+    emission_matrix_observations_states[state_index] = normalized_similarities
 
 #print(emission_matrix_observations_states)
 
@@ -125,18 +139,23 @@ print(f"Dehashed game state: {dehashed_state}")
 #print(transition_matrix)
 
 #DUMMY TRANSITION MATRIX DOESN"T WORK
-# Transition matrix - favor transitions within the same category
-transition_matrix = np.zeros((len(states), len(states)))
-for i, current_state in enumerate(states):
-    for j, next_state in enumerate(states):
-        # Transitions are more probable within the same category (e.g., Fruit1 -> Fruit2)
-        if current_state[:-1] == next_state[:-1]:  # Same category
-            transition_matrix[i, j] = 0.8  # Higher probability for within-category transitions
-        else:
-            transition_matrix[i, j] = 0.2 / (len(states) - 4)  # Lower probability for across-category transitions
+# # Transition matrix - favor transitions within the same category
+# transition_matrix = np.zeros((len(states), len(states)))
+# for i, current_state in enumerate(states):
+#     for j, next_state in enumerate(states):
+#         # Transitions are more probable within the same category (e.g., Fruit1 -> Fruit2)
+#         if current_state[:-1] == next_state[:-1]:  # Same category
+#             transition_matrix[i, j] = 0.8  # Higher probability for within-category transitions
+#         else:
+#             transition_matrix[i, j] = 0.2 / (len(states) - 4)  # Lower probability for across-category transitions
 
-# # Normalize transition matrix
-transition_matrix /= transition_matrix.sum(axis=1, keepdims=True)
+# # # Normalize transition matrix
+# transition_matrix /= transition_matrix.sum(axis=1, keepdims=True)
+
+transition_matrix = np.zeros((len(states), len(states)))
+for current_state in range(len(states)):
+    for next_state in range(len(states)):
+        transition_matrix[current_state][next_state] = 1/4
 
 # IMPLEMENT VIRTERBI ALGORITHM HERE:
 
@@ -173,6 +192,8 @@ def enforce_constraints(best_path, states):
             if state in state_list and category_assignments[category] < 4:
                 final_path.append(state_idx)
                 category_assignments[category] += 1
+                break
+            elif state in state_list and category_assignments[category] >= 4:
                 break
 
     return final_path
@@ -242,7 +263,7 @@ def viterbi_with_constraints(observations, states, emission_matrix, transition_m
     for t in range(1, n_observations):
         for s in range(n_states):
             probabilities = [
-                dp[prev_s, t - 1] * transition_matrix[prev_s, s] * emission_matrix[t, s]
+                dp[prev_s, t - 1] * transition_matrix[prev_s, s] * emission_matrix[s, t]
                 for prev_s in range(n_states)
             ]
             dp[s, t] = max(probabilities)
@@ -250,7 +271,7 @@ def viterbi_with_constraints(observations, states, emission_matrix, transition_m
 
     best_path = np.zeros(n_observations, dtype=int)
     best_path[-1] = np.argmax(dp[:, -1])
-    for t in range(n_observations - 2, -1, -1):
+    for t in range(n_observations -2, -1, -1):
         best_path[t] = backpointer[best_path[t + 1], t + 1]
 
     # Convert indices to state names

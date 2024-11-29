@@ -1,5 +1,8 @@
 import numpy as np
 
+def word2vec_calculation(word1, word2):
+    return
+
 observations = np.array(["Strawberry", "Kiwi", "Spring", "Summer", 
                          "Tennis", "Fall", "Winter", "Soccer",
                          "Indian", "Thai", "Basketball", "Japanese",
@@ -34,5 +37,12 @@ for category_index in range(len(categories)):
 emission_matrix_observations_states = np.zeros((len(observations), len(states)))
 
 
+for observation_index in range(len(observations)):
+    for state_index in range(len(states)):
+        emission_matrix_observations_states[observation_index, state_index] = word2vec_calculation(observations[observation_index], states[state_index]) # replace with word2vec calculation of observation[observation_index] and states[state_index] 
+
+#TO DO: create transition matrix
+
 print("Emission Matrix (Categories x States):")
 print(emission_matrix_categories_states)
+#print(emission_matrix_observations_states)

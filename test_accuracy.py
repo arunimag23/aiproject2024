@@ -12,78 +12,104 @@ word2vec_model = api.load("word2vec-google-news-300")
 fruits = ["blueberry", "strawberry", "kiwi", "apple", 
         "banana", "orange", "mango", "grape",
         "pineapple", "watermelon", "papaya", "cherry",
-        "peach", "pear", "plum", "guava"]
+        "peach", "pear", "plum", "guava",
+        "lychee", "fig", "apricot", "dragonfruit"]
+
 clothing = ["shirt", "pants", "skirt", "shorts",
         "hat", "scarf", "jacket", "dress",
         "blouse", "suit", "tie", "gloves",
-        "hoodie", "socks", "jeans", "pajamas"]
+        "hoodie", "socks", "jeans", "pajamas",
+        "belt", "sneakers", "sweater", "cardigan"]
+
 colors = ["red", "orange", "yellow", "green",
         "blue", "purple", "indigo", "pink",
         "white", "gray", "black", "brown",
-        "beige", "maroon", "teal", "navy"]
+        "beige", "maroon", "teal", "navy",
+        "gold", "silver", "cyan", "magenta"]
+
 sports = ["soccer", "football", "basketball", "tennis",
         "cricket", "volleyball", "swimming", "golf",
         "rugby", "hockey", "badminton", "wrestling",
-        "gymnastics", "running", "fencing", "snowboarding"]
+        "gymnastics", "running", "fencing", "snowboarding",
+        "boxing", "cycling", "karate", "skateboarding"]
+
 flowers = ["rose", "tulip", "lily", "daisy",
     "sunflower", "orchid", "marigold", "lavender",
     "chrysanthemum", "peony", "jasmine", "daffodil",
-    "hibiscus", "carnation", "iris", "lotus"]
-shapes = [ "circle", "square", "triangle", "rectangle",
+    "hibiscus", "carnation", "iris", "lotus",
+    "poppy", "magnolia", "gardenia", "camellia"]
+
+shapes = ["circle", "square", "triangle", "rectangle",
     "oval", "pentagon", "hexagon", "octagon",
     "diamond", "trapezoid", "parallelogram", "star",
-    "heart", "crescent", "cube", "cylinder"]
+    "heart", "crescent", "cube", "cylinder",
+    "sphere", "cone", "pyramid", "torus"]
+
 cuisines = ["italian", "chinese", "indian", "mexican",
     "japanese", "thai", "french", "greek",
     "spanish", "korean", "vietnamese", "turkish",
-    "moroccan", "american", "lebanese", "ethiopian"]
+    "moroccan", "american", "lebanese", "ethiopian",
+    "caribbean", "russian", "brazilian", "indonesian"]
+
 
 # categories with overlapping words
 animals = ["dog", "cat", "lion", "tiger",
     "bear", "wolf", "fox", "horse",
     "shark", "whale", "snake", "eagle",
-    "zebra", "mouse", "rabbit", "panda"]
+    "zebra", "mouse", "rabbit", "panda",
+    "kangaroo", "monkey", "giraffe", "elephant"]
+
 verbs = ["bat", "fly", "run", "jump",
         "write", "play", "watch", "climb",
         "drive", "laugh", "read", "dance",
-        "eat", "drink", "talk", "think"] # overlaps with animal fly and bat
+        "eat", "drink", "talk", "think",
+        "sing", "swim", "paint", "sleep"]
+ # overlaps with animal fly and bat
 
 # ambiguous sorting, each could relate to human in some way
 tree = ["palm", "limb", "trunk", "crown",
         "heart", "veins", "skin", "roots",
         "branch", "sap", "knot", "leaf",
-        "ring", "bark", "shoot", "stem"]
+        "ring", "bark", "shoot", "stem",
+        "canopy", "twig", "seed", "flower"]
+
 human = ["head", "arm", "leg", "torso",
          "hand", "foot", "eye", "ear",
         "nose", "mouth", "heart", "lungs",
-        "skin", "brain", "stomach", "bones"]
+        "skin", "brain", "stomach", "bones",
+        "fingers", "toes", "hair", "teeth"]
+
 
 # for emotion / connotation testing
 positive = ["joy", "happiness", "love", "hope",
             "peace", "gratitude", "comfort", "delight",
             "serenity", "pleasure", "trust", "contentment",
-            "optimism", "cheerfulness", "bliss", "euphoria"]
+            "optimism", "cheerfulness", "bliss", "euphoria",
+            "confidence", "friendship", "inspiration", "forgiveness"]
 
 negative = ["anger", "fear", "sadness", "grief",
             "envy", "anxiety", "frustration", "dread",
             "despair", "hatred", "guilt", "shame",
-            "regret", "loneliness", "jealousy", "bitterness"]
+            "regret", "loneliness", "jealousy", "bitterness",
+            "resentment", "disgust", "boredom", "agony"]
 
 weather = ["rain", "snow", "sunshine", "fog",
            "storm", "hail", "hurricane", "breeze",
            "cloud", "thunder", "lightning", "drought",
-           "wind", "frost", "mist", "tornado"]
+           "wind", "frost", "mist", "tornado",
+           "dew", "rainbow", "drizzle", "blizzard"]
 
 virtues = ["kindness", "generosity", "humor", "courage",
            "wisdom", "honesty", "integrity", "loyalty",
            "patience", "creativity", "empathy", "diligence",
-           "determination", "optimism", "humility", "compassion"]
+           "determination", "optimism", "humility", "compassion",
+           "self-discipline", "resilience", "forgiveness", "altruism"]
 
 flaws = ["greed", "selfishness", "arrogance", "envy",
          "dishonesty", "laziness", "impatience", "cruelty",
          "hatred", "cowardice", "stubbornness", "vanity",
-         "apathy", "jealousy", "manipulative", "pessimism"]
-
+         "apathy", "jealousy", "manipulative", "pessimism",
+         "spite", "indecisiveness", "prejudice", "resentment"]
 
         
 category_con = {
@@ -360,6 +386,3 @@ trials_connotation(10000, category_simple, category_con, 3)
 trials_connotation(10000, category_simple, category_con, 2)
 trials_connotation(10000, category_simple, category_con, 1)
 trials_connotation(10000, category_simple, category_con, 0)
-
-
-

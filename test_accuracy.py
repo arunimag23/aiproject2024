@@ -58,22 +58,53 @@ human = ["head", "arm", "leg", "torso",
         "nose", "mouth", "heart", "lungs",
         "skin", "brain", "stomach", "bones"]
 
+# for emotion / connotation testing
+positive = ["joy", "happiness", "love", "hope",
+            "peace", "gratitude", "comfort", "delight",
+            "serenity", "pleasure", "trust", "contentment",
+            "optimism", "cheerfulness", "bliss", "euphoria"]
 
-# # get a random matrix of observations
-# selected_elements = random.sample(shapes, 4) + random.sample(animals, 4) + random.sample(fruits, 4) + random.sample(colors, 4)
-# random.shuffle(selected_elements)
-# observations = np.array(selected_elements).reshape(16,)
-# # print("Randomly ordered 4x4 matrix:")
-# # print(observations)
-# # set states
-# states = np.array(["shapes", "animals", "colors", "fruits"])
+negative = ["anger", "fear", "sadness", "grief",
+            "envy", "anxiety", "frustration", "dread",
+            "despair", "hatred", "guilt", "shame",
+            "regret", "loneliness", "jealousy", "bitterness"]
 
-# category_state_mapping = {
-#     "shapes": states[:4],
-#     "animals": states[4:8],
-#     "colors": states[8:12],
-#     "fruits": states[12:]
-# }
+weather = ["rain", "snow", "sunshine", "fog",
+           "storm", "hail", "hurricane", "breeze",
+           "cloud", "thunder", "lightning", "drought",
+           "wind", "frost", "mist", "tornado"]
+
+virtues = ["kindness", "generosity", "humor", "courage",
+           "wisdom", "honesty", "integrity", "loyalty",
+           "patience", "creativity", "empathy", "diligence",
+           "determination", "optimism", "humility", "compassion"]
+
+flaws = ["greed", "selfishness", "arrogance", "envy",
+         "dishonesty", "laziness", "impatience", "cruelty",
+         "hatred", "cowardice", "stubbornness", "vanity",
+         "apathy", "jealousy", "manipulative", "pessimism"]
+
+
+        
+category_con = {
+        "positive": positive,
+        "negative": negative,
+        "colors": colors,
+        "weather": weather,
+        "virtues": virtues,
+        "flaws": flaws,
+    }
+
+category_simple = {
+        "fruits": fruits,
+        "clothing": clothing,
+        "colors": colors,
+        "sports": sports,
+        "flowers": flowers,
+        "shapes": shapes,
+        "animals": animals,
+        "cuisines": cuisines
+    }
 
 def numcorrect(observations, best_path, category_state_mapping):
     correct = 0
@@ -97,6 +128,20 @@ def numcorrect(observations, best_path, category_state_mapping):
             state_items = sports
         elif state == "flowers":
             state_items = flowers
+        elif state == "tree":
+            state_items = tree
+        elif state == "human":
+            state_items = human
+        elif state == "positive":
+            state_items = positive
+        elif state == "negative":
+            state_items = negative
+        elif state == "weather":
+            state_items = weather
+        elif state == "virtues":
+            state_items = virtues
+        elif state == "flaws":
+            state_items = flaws
         else:
             state_items = []
         
@@ -139,7 +184,7 @@ def makeplot(percents, name):
         slope, intercept = np.polyfit(x, y, 1)
         best_fit_line = slope * x + intercept
 
-        plt.figure(figsize=(12, 6))
+        plt.figure(figsize=(10, 6))
         plt.scatter(x, y, s=5, alpha=0.6, label="Individual Trial Percentages")
         plt.plot(x, best_fit_line, color="red", linewidth=2, label="Line of Best Fit")
         plt.title(name)
@@ -179,17 +224,6 @@ def trials_with_best_fit(num, category_to_array):
     print("Average Correctness: " + str(average))
     makeplot(percents, "Percent Correct for Each Trial")
 
-
-category_simple = {
-        "fruits": fruits,
-        "clothing": clothing,
-        "colors": colors,
-        "sports": sports,
-        "flowers": flowers,
-        "shapes": shapes,
-        "animals": animals,
-        "cuisines": cuisines
-    }
 # Run trials with random category selection for each trial
 trials_with_best_fit(10000, category_simple)
 
@@ -281,9 +315,51 @@ def trials_with_tree_and_human(num, category_simple, tree, human):
     print("Average Correctness: " + str(average))
     makeplot(percents, "Percent Correct for Each Trial - Human and Tree")
 
-# trials_with_tree(10000, category_simple, tree)
-# trials_with_human(10000, category_simple, human)
-# trials_with_tree_and_human(10000, category_simple, tree, human)
+trials_with_tree(10000, category_simple, tree)
+trials_with_human(10000, category_simple, human)
+trials_with_tree_and_human(10000, category_simple, tree, human)
+
+
+def trials_connotation(num, category_simple, category_con, num_simple):
+    all_categories = list(category_simple.keys())
+    all_categories_con = list(category_con.keys())
+    
+    percents = []
+    for i in range(num):
+        # Select given number of simple and connotation-included categoies
+        random_categories = random.sample(all_categories, num_simple)
+        categories_arrays = [category_simple[name] for name in random_categories]
+
+        random_categories_con = random.sample(all_categories_con, 4 - num_simple)
+        categories_arrays_con = [category_con[name] for name in random_categories_con]
+
+        selected_categories = random_categories_con + random_categories
+        selected_arrays = categories_arrays_con + categories_arrays
+
+        # Sample elements and create observations
+        selected_elements = random.sample(selected_arrays[0], 4) + \
+                            random.sample(selected_arrays[1], 4) + \
+                            random.sample(selected_arrays[2], 4) + \
+                            random.sample(selected_arrays[3], 4)
+        random.shuffle(selected_elements)
+        observations = np.array(selected_elements).reshape(16,)
+        states = np.array(selected_categories)
+        category_state_mapping = {selected_categories[i]: selected_arrays[i] for i in range(4)}
+
+        bp = run_aigame(observations, states, category_state_mapping)
+        p = numcorrect(observations, bp, category_state_mapping)
+        percents.append(p)
+
+    # Calculate average correctness
+    average = np.mean(percents)
+    print("Average Correctness: " + str(average))
+    makeplot(percents, "Percent Correct for Each Trial with " + str(num_simple) + " Simple Categories")
+
+trials_connotation(10000, category_simple, category_con, 4)
+trials_connotation(10000, category_simple, category_con, 3)
+trials_connotation(10000, category_simple, category_con, 2)
+trials_connotation(10000, category_simple, category_con, 1)
+trials_connotation(10000, category_simple, category_con, 0)
 
 
 

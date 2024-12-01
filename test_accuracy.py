@@ -5,7 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
 from gensim.models import Word2Vec
 import gensim.downloader as api
-from aigame import word2vec_calculation, hash_game_state, dehash_game_state, enforce_constraints, viterbi_with_constraints
+from aigame_testing import word2vec_calculation, hash_game_state, dehash_game_state, enforce_constraints, viterbi_with_constraints
 
 word2vec_model = api.load("word2vec-google-news-300")
 

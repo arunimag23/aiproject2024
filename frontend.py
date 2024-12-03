@@ -37,8 +37,9 @@ def run_aigame(observations, states, category_state_mapping):
         for obs_index in range(len(observations)):
             similarity = word2vec_calculation(observations[obs_index], cleaned_states[state_index])
             emission_matrix[state_index, obs_index] = similarity
+    # normalize emission matrix probabilities by taking cosine similarity and dividing it by sum of cosine similarities for each observation and the category
     emission_matrix /= emission_matrix.sum(axis=0, keepdims=True)
-
+    # uniform transition matrix where probability of transitioning from one state to another is 1/number of states
     transition_matrix = np.full((len(cleaned_states), len(cleaned_states)), 1 / len(cleaned_states))
 
     best_path = viterbi_with_constraints(observations, cleaned_states, emission_matrix, transition_matrix)

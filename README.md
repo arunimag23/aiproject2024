@@ -7,7 +7,7 @@ This project develops an agent to tackle a unique variation of the New York Time
 This process leverages Google's Word2Vec model to calculate cosine similarity between each word and the four predefined categories. The similarities are used to construct an emission matrix, which is combined with a transition matrix. The Viterbi algorithm is then applied to efficiently group words into their corresponding categories. A colored board is returned that showacases the grid of words colored in accordance to its matching category.
 
 # Document Overview
-- Twist_On_Connections_AI_Agent: allows user to run the GUI of our game and shows the ai agent solving our game utilizing a HMM approach
+- Twist_On_Connections_AI_Agent.py: allows user to run the GUI of our game and shows the ai agent solving our game utilizing a HMM approach
 - test-accuracy.py: encompasses the various test cases we ran for our game and graph visualizations for our model's accuracy
 
 # Getting Started
@@ -32,7 +32,7 @@ Install gensim:
 Install scikit-learn:
 `pip install scikit-learn`
 
-Set GUI to "True" in line 80 of frontend.py file
+Set GUI to "True" in line 80 of Twist_On_Connections_AI_Agent.py file
 
-Run frontend.py
+Run Twist_On_Connections_AI_Agent.py
 

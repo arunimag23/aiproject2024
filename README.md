@@ -15,7 +15,7 @@ Prerequisites
 Ensure you have the following installed to run the front end application
 
 - Python 3.7+
-- numpy < 2
+- numpy
 - pygame
 - Word2Vec
 - To download Google's Word2Vec model, use this [Link](https://drive.google.com/file/d/1ETEzH8X7uM_xXtIEuNLgz9VL7eQEeE_V/view)

@@ -9,6 +9,7 @@ from aigame_testing import word2vec_calculation, hash_game_state, dehash_game_st
 
 word2vec_model = api.load("word2vec-google-news-300")
 
+# Simple categories and potential words
 fruits = ["blueberry", "strawberry", "kiwi", "apple", 
         "banana", "orange", "mango", "grape",
         "pineapple", "watermelon", "papaya", "cherry",
@@ -59,6 +60,48 @@ human = ["head", "arm", "leg", "torso",
         "skin", "brain", "stomach", "bones"]
 
 
+# for emotion / connotation testing
+positive = ["joy", "happiness", "love", "hope",
+            "peace", "gratitude", "comfort", "delight",
+            "serenity", "pleasure", "trust", "contentment",
+            "optimism", "cheerfulness", "bliss", "euphoria",
+            "confidence", "friendship", "inspiration", "forgiveness"]
+
+negative = ["anger", "fear", "sadness", "grief",
+            "envy", "anxiety", "frustration", "dread",
+            "despair", "hatred", "guilt", "shame",
+            "regret", "loneliness", "jealousy", "bitterness",
+            "resentment", "disgust", "boredom", "agony"]
+
+weather = ["rain", "snow", "sunshine", "fog",
+           "storm", "hail", "hurricane", "breeze",
+           "cloud", "thunder", "lightning", "drought",
+           "wind", "frost", "mist", "tornado",
+           "dew", "rainbow", "drizzle", "blizzard"]
+
+virtues = ["kindness", "generosity", "humor", "courage",
+           "wisdom", "honesty", "integrity", "loyalty",
+           "patience", "creativity", "empathy", "diligence",
+           "determination", "optimism", "humility", "compassion",
+           "discipline", "resilience", "forgiveness", "altruism"]
+
+flaws = ["greed", "selfishness", "arrogance", "envy",
+         "dishonesty", "laziness", "impatience", "cruelty",
+         "hatred", "cowardice", "stubbornness", "vanity",
+         "apathy", "jealousy", "manipulative", "pessimism",
+         "spite", "indecisiveness", "prejudice", "resentment"]
+
+        
+category_con = {
+        "positive": positive,
+        "negative": negative,
+        "colors": colors,
+        "weather": weather,
+        "virtues": virtues,
+        "flaws": flaws,
+    }
+
+# Find percent of words classified correctly for a given path
 def numcorrect(observations, best_path, category_state_mapping):
     correct = 0
     incorrect = 0
@@ -81,6 +124,20 @@ def numcorrect(observations, best_path, category_state_mapping):
             state_items = sports
         elif state == "flowers":
             state_items = flowers
+        elif state == "tree":
+            state_items = tree
+        elif state == "human":
+            state_items = human
+        elif state == "positive":
+            state_items = positive
+        elif state == "negative":
+            state_items = negative
+        elif state == "weather":
+            state_items = weather
+        elif state == "virtues":
+            state_items = virtues
+        elif state == "flaws":
+            state_items = flaws
         else:
             state_items = []
         
@@ -95,6 +152,7 @@ def numcorrect(observations, best_path, category_state_mapping):
     ratio = (correct/16) * 100
     return ratio
 
+# Initialize emission and transition matrix to call the viterbi algorithm
 def run_aigame(observations, states, category_state_mapping):
     # Initialize emission matrix
     emission_matrix_observations_states = np.zeros((len(states), len(observations)))
@@ -117,6 +175,7 @@ def run_aigame(observations, states, category_state_mapping):
     best_path = viterbi_with_constraints(observations, states, emission_matrix_observations_states, transition_matrix)
     return best_path
 
+# Plot the accuracy given an array of percentage classified correctly and graph title
 def makeplot(percents, name):
         x = np.arange(len(percents)) 
         y = np.array(percents)
@@ -134,6 +193,7 @@ def makeplot(percents, name):
         plt.tight_layout()
         plt.show()
 
+# To run on simple trials, choosing 4 simple random categories and words
 def trials_with_best_fit(num, category_to_array):
     all_categories = list(category_to_array.keys())
     
@@ -177,7 +237,7 @@ category_simple = {
 # Run trials with random category selection for each trial
 trials_with_best_fit(10000, category_simple)
 
-# run trials with 3 simple + 1 tree
+# run trials with 3 simple random categories + 1 tree category
 def trials_with_tree(num, category_simple, tree):
     filtered_categories = {key: value for key, value in category_simple.items() if key not in ["verbs", "animals"]}
     
@@ -206,7 +266,7 @@ def trials_with_tree(num, category_simple, tree):
     print("Average Correctness: " + str(average))
     makeplot(percents, "Percent Correct for Each Trial - Only Tree")
 
-# run trials for 3 simple + 1 human
+# run trials for 3 simple random categories + 1 human category
 def trials_with_human(num, category_simple, human):
     filtered_categories = {key: value for key, value in category_simple.items() if key not in ["verbs", "animals"]}
     
@@ -235,7 +295,7 @@ def trials_with_human(num, category_simple, human):
     print("Average Correctness: " + str(average))
     makeplot(percents, "Percent Correct for Each Trial - Only Human")
 
-# run trials for tree and human + 2 simple
+# run trials for tree and human + 2 simple random categories
 def trials_with_tree_and_human(num, category_simple, tree, human):
     filtered_categories = {key: value for key, value in category_simple.items() if key not in ["verbs", "animals"]}
     
@@ -265,9 +325,51 @@ def trials_with_tree_and_human(num, category_simple, tree, human):
     print("Average Correctness: " + str(average))
     makeplot(percents, "Percent Correct for Each Trial - Human and Tree")
 
+# run 10,000 trials
 trials_with_tree(10000, category_simple, tree)
 trials_with_human(10000, category_simple, human)
 trials_with_tree_and_human(10000, category_simple, tree, human)
 
+# test categories with connotations and groupings by emotion by specifying the number of simple categories
+def trials_connotation(num, category_simple, category_con, num_simple):
+    all_categories = list(category_simple.keys())
+    all_categories_con = list(category_con.keys())
+    
+    percents = []
+    for i in range(num):
+        # Select given number of simple and connotation-included categoies
+        random_categories = random.sample(all_categories, num_simple)
+        categories_arrays = [category_simple[name] for name in random_categories]
 
+        random_categories_con = random.sample(all_categories_con, 4 - num_simple)
+        categories_arrays_con = [category_con[name] for name in random_categories_con]
+
+        selected_categories = random_categories_con + random_categories
+        selected_arrays = categories_arrays_con + categories_arrays
+
+        # Sample elements and create observations
+        selected_elements = random.sample(selected_arrays[0], 4) + \
+                            random.sample(selected_arrays[1], 4) + \
+                            random.sample(selected_arrays[2], 4) + \
+                            random.sample(selected_arrays[3], 4)
+        random.shuffle(selected_elements)
+        observations = np.array(selected_elements).reshape(16,)
+        states = np.array(selected_categories)
+        category_state_mapping = {selected_categories[i]: selected_arrays[i] for i in range(4)}
+
+        bp = run_aigame(observations, states, category_state_mapping)
+        p = numcorrect(observations, bp, category_state_mapping)
+        percents.append(p)
+
+    # Calculate average correctness
+    average = np.mean(percents)
+    print("Average Correctness: " + str(average))
+    makeplot(percents, "Percent Correct for Each Trial with " + str(num_simple) + " Simple Categories")
+
+# Run 10,000 trials for each possible combination of categories (for number of simple and connotation)
+trials_connotation(10000, category_simple, category_con, 4)
+trials_connotation(10000, category_simple, category_con, 3)
+trials_connotation(10000, category_simple, category_con, 2)
+trials_connotation(10000, category_simple, category_con, 1)
+trials_connotation(10000, category_simple, category_con, 0)
 
